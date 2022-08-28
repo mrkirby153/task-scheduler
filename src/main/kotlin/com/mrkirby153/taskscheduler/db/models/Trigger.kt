@@ -16,10 +16,10 @@ object Triggers : UUIDTable("triggers") {
     val priority = integer("priority").default(0)
 }
 
-class Trigger(id: EntityID<UUID>) : UUIDEntity(id) {
-    companion object : UUIDEntityClass<Trigger>(Triggers)
+class TriggerEntity(id: EntityID<UUID>) : UUIDEntity(id) {
+    companion object : UUIDEntityClass<TriggerEntity>(Triggers)
 
-    var task by Task referencedOn Triggers.task
+    var task by TaskEntity referencedOn Triggers.task
     var nextRunAt by Triggers.nextRunAt
     var lastRunAt by Triggers.lastRunAt
     var type by Triggers.type

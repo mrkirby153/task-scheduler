@@ -1,29 +1,39 @@
 package com.mrkirby153.taskscheduler.task
 
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
+
 /**
  * An abstract task
  */
-abstract class AbstractTask(
-    val type: String
-) {
+abstract class Task<T : Any?> {
+
+    private lateinit var dataClass: Class<T>
+    private var rawData: String? = null
+
+    @OptIn(ExperimentalSerializationApi::class)
+    var data: T
+        @Suppress("UNCHECKED_CAST")
+        get() {
+            return if (rawData != null) {
+                val serializer = serializer(dataClass)
+                Json.decodeFromString(serializer, rawData!!)
+            } else {
+                null
+            } as T
+        }
+        set(data) {
+            rawData = if (data != null) {
+                val serializer = serializer(data!!::class.java)
+                Json.encodeToString(serializer, data)
+            } else {
+                null
+            }
+        }
+
     /**
      * Runs the task
      */
     abstract fun run()
 }
-
-/**
- * A task that has data associated with it. The data class must be [kotlinx.serialization.Serializable]
- */
-abstract class TaskWithData<T : Any>(
-    type: String
-) : AbstractTask(type) {
-    lateinit var data: T
-}
-
-/**
- * A task that does not contain any data
- */
-abstract class Task(
-    type: String
-) : AbstractTask(type)

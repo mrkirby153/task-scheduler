@@ -19,8 +19,8 @@ object Tasks : UUIDTable("tasks") {
 /**
  * A task in the database
  */
-class Task(id: EntityID<UUID>) : UUIDEntity(id) {
-    companion object : UUIDEntityClass<Task>(Tasks)
+class TaskEntity(id: EntityID<UUID>) : UUIDEntity(id) {
+    companion object : UUIDEntityClass<TaskEntity>(Tasks)
 
     var data by Tasks.data
     var taskClass by Tasks.taskClass
