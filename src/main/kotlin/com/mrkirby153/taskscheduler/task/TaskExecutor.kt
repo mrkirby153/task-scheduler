@@ -13,6 +13,7 @@ import java.util.concurrent.ThreadFactory
 
 private val logger = KotlinLogging.logger { }
 const val EXECUTOR_EXCHANGE_NAME = "task_executor_incoming"
+const val EXECUTOR_BROADCAST_EXCHANGE_NAME = "task_executor_broadcast"
 
 /**
  * A task executor
@@ -62,9 +63,17 @@ class TaskExecutor(
                 true,
                 null
             )
+            channel.exchangeDeclare(
+                EXECUTOR_BROADCAST_EXCHANGE_NAME,
+                BuiltinExchangeType.FANOUT,
+                false,
+                true,
+                null
+            )
 
             logger.debug { "Binding to queues $queues" }
             channel.queueBind(ephemeralQueue, EXECUTOR_EXCHANGE_NAME, "")
+            channel.queueBind(ephemeralQueue, EXECUTOR_BROADCAST_EXCHANGE_NAME, "")
             queues.forEach {
                 channel.queueBind(ephemeralQueue, EXECUTOR_EXCHANGE_NAME, it)
             }
