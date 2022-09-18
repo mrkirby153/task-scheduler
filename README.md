@@ -1,2 +1,2 @@
 # task-scheduler
-A JVM task scheduler written in Kotlin
+A task scheduler written in Elixir
