@@ -7,8 +7,13 @@
         }
     ) {}
 }:
+let
+    elixirProtoc = import ./nix/protobuf.nix { inherit pkgs; };
+in
     pkgs.mkShell {
         buildInputs = with pkgs; [
             elixir
+            protobuf
+            elixirProtoc
         ];
     }
