@@ -24,7 +24,11 @@ defmodule TaskScheduler.MixProject do
       {:amqp, "~> 3.1"},
       {:myxql, "~> 0.6.2"},
       {:distillery, "~> 2.1"},
-      {:toml, "~> 0.6.1"}
+      {:toml, "~> 0.6.1"},
+      {:grpc, "~> 0.5.0"},
+      {:cowlib, "~> 2.8.0", hex: :grpc_cowlib, override: true},
+      {:protobuf, "~> 0.11.0"},
+      {:google_protos, "~> 0.1"}
     ]
   end
 end
