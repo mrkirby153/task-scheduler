@@ -5,5 +5,5 @@ managed:
   java_package_prefix: com.mrkirby153.taskscheduler.proto
 plugins:
   - name: elixir
-    out: lib/proto
+    out: ../lib/proto
     opt: plugins=grpc
