@@ -7,9 +7,3 @@ repos:
         language: script
         files: proto/.*\.proto$
         pass_filenames: false
-      - id: buf-breakage
-        name: buf breaking
-        entry: ./hooks/proto_breaking.sh
-        language: script
-        files: proto/.*\.proto$
-        pass_filenames: false
