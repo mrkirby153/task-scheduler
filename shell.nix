@@ -16,5 +16,6 @@ in
             protobuf
             elixirProtoc
             buf
+            pre-commit
         ];
     }
