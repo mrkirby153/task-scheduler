@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package taskscheduler.v1;
+
+
+message Task {
+    uint64 id = 1;
+    string data = 2;
+    string queue = 3;
+    uint64 run_at = 4;
+}

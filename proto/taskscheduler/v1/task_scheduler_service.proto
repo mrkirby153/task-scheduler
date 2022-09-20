@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package taskscheduler.v1;
+
+import "taskscheduler/v1/task_scheduler.proto";
+
+service TaskSchedulerService {
+    rpc GetTask (GetTaskRequest) returns (GetTaskResponse) {}
+    rpc CancelTask (CancelTaskRequest) returns (CancelTaskResponse) {}
+    rpc RescheduleTask (RescheduleTaskRequest) returns (RescheduleTaskResponse) {}
+}
+
+message GetTaskRequest {
+    uint64 id = 1;
+}
+
+message GetTaskResponse {
+    Task task = 1;
+}
+
+message CancelTaskRequest {
+    uint64 id = 1;
+}
+
+message CancelTaskResponse {
+    bool success = 1;
+}
+
+message RescheduleTaskRequest {
+    oneof task_id {
+        uint64 id = 1;
+        Task task = 2;
+    }
+    uint64 new_time = 3;
+}
+
+message RescheduleTaskResponse {
+    Task task = 1;
+}
+
+message ScheduleTaskRequest {
+    uint64 time = 1;
+    string queue = 2;
+    string data = 3;
+}
+
+message ScheduleTaskResponse {
+    Task task = 1;
+}

@@ -15,5 +15,6 @@ in
             elixir
             protobuf
             elixirProtoc
+            buf
         ];
     }

@@ -1,0 +1,9 @@
+version: v1
+managed:
+  enabled: true
+  java_multiple_files: true
+  java_package_prefix: com.mrkirby153.taskscheduler.proto
+plugins:
+  - name: elixir
+    out: ../lib/proto
+    opt: plugins=grpc
