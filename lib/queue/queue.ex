@@ -4,7 +4,8 @@ defmodule TaskScheduler.Queue do
 
   @type t :: %{
     trigger_ref: reference(),
-    tasks: [task()]
+    tasks: [task()],
+    queue: String.t()
   }
 
   @type task :: %{
@@ -14,7 +15,8 @@ defmodule TaskScheduler.Queue do
   }
 
   defstruct trigger_ref: nil,
-    tasks: []
+    tasks: [],
+    queue: nil
 
   ## Client Callbacks
 
@@ -28,11 +30,13 @@ defmodule TaskScheduler.Queue do
 
   ## Server Callbacks
 
-  def start_link(opts \\ []) do
-    GenServer.start_link(__MODULE__, :ok, opts)
+  def start_link(start_opts \\ [], opts \\ []) do
+    queue_name = Keyword.fetch!(start_opts, :queue_name)
+    GenServer.start_link(__MODULE__, queue_name, opts)
   end
 
-  def init(:ok) do
+  def init(queue_name) do
+    Logger.info("Starting qeueu #{queue_name}")
     state = %__MODULE__{}
     {:ok, state, {:continue, :init}}
   end
