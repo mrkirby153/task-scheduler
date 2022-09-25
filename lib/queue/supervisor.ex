@@ -7,8 +7,8 @@ defmodule TaskScheduler.Queue.Supervisor do
 
   def init(_opts) do
     children = [
-      {DynamicSupervisor, name: TaskScheduler.QueueSupervisor, strategy: :one_for_one},
-      {TaskScheduler.Queue.QueueRegistry, name: TaskScheduler.Queue.QueueRegistry}
+      {Registry, keys: :unique, name: TaskScheduler.Queue.QueueRegistry},
+      {DynamicSupervisor, name: TaskScheduler.QueueSupervisor, strategy: :one_for_one}
     ]
     Supervisor.init(children, strategy: :one_for_all)
   end
