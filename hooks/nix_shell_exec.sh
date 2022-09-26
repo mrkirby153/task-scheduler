@@ -2,8 +2,8 @@
 set -e
 
 if [ -z "$IN_NIX_SHELL" ]; then
-    echo "Re-executing in nix-shell"
-    nix-shell --command "$@"
+    args="$@"
+    nix-shell --run "$args"
 else
-    exec "$@"
+    $@
 fi
