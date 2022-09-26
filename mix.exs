@@ -26,7 +26,9 @@ defmodule TaskScheduler.MixProject do
       {:myxql, "~> 0.6.2"},
       {:distillery, "~> 2.1"},
       {:toml, "~> 0.6.1"},
-      {:grpc, git: "https://github.com/elixir-grpc/grpc.git", ref: "c7ee0c11ad9eb95a8925a342af8e2d5b1f082fee"},
+      {:grpc,
+       git: "https://github.com/elixir-grpc/grpc.git",
+       ref: "c7ee0c11ad9eb95a8925a342af8e2d5b1f082fee"},
       {:protobuf, "~> 0.11.0"},
       {:google_protos, "~> 0.3"}
     ]

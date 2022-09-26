@@ -1,5 +1,4 @@
 defmodule TaskScheduler.Queue.QueueRegistry do
-
   @doc """
   Looks up a queue by name, if it exists, returns the pid, otherwise returns `:not_found`
   """
@@ -28,9 +27,12 @@ defmodule TaskScheduler.Queue.QueueRegistry do
   @spec start(any) :: :ignore | {:error, any} | {:ok, pid} | {:ok, pid, any}
   def start(queue_name) do
     process_name = {:via, Registry, {__MODULE__, queue_name}}
-    DynamicSupervisor.start_child(TaskScheduler.QueueSupervisor, {TaskScheduler.Queue, [queue_name: queue_name, name: process_name]})
-  end
 
+    DynamicSupervisor.start_child(
+      TaskScheduler.QueueSupervisor,
+      {TaskScheduler.Queue, [queue_name: queue_name, name: process_name]}
+    )
+  end
 
   @doc """
   Stops a queue by pid or name
@@ -54,6 +56,7 @@ defmodule TaskScheduler.Queue.QueueRegistry do
   """
   @spec all :: [{pid(), String.t()}]
   def all() do
-    Registry.select(__MODULE__, [{{:"$1", :"$2", :"$3"}, [], [{{:"$1", :"$2", :"$3"}}]}]) |> Enum.map(fn {name, pid, _} -> {pid, name} end)
+    Registry.select(__MODULE__, [{{:"$1", :"$2", :"$3"}, [], [{{:"$1", :"$2", :"$3"}}]}])
+    |> Enum.map(fn {name, pid, _} -> {pid, name} end)
   end
 end

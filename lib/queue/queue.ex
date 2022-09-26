@@ -3,22 +3,22 @@ defmodule TaskScheduler.Queue do
   require Logger
 
   @type t :: %{
-    trigger_ref: reference(),
-    tasks: [task()],
-    queue: String.t(),
-    name: String.t()
-  }
+          trigger_ref: reference(),
+          tasks: [task()],
+          queue: String.t(),
+          name: String.t()
+        }
 
   @type task :: %{
-    id: reference(),
-    data: String.t(),
-    run_at: integer()
-  }
+          id: reference(),
+          data: String.t(),
+          run_at: integer()
+        }
 
   defstruct trigger_ref: nil,
-    tasks: [],
-    queue: nil,
-    name: nil
+            tasks: [],
+            queue: nil,
+            name: nil
 
   ## Client Callbacks
 
@@ -41,6 +41,7 @@ defmodule TaskScheduler.Queue do
     state = %__MODULE__{
       name: queue_name
     }
+
     {:ok, state, {:continue, :init}}
   end
 
@@ -66,11 +67,14 @@ defmodule TaskScheduler.Queue do
     Logger.info("Scheduling task!")
     task_ref = make_ref()
 
-    new_tasks = [%{
-      id: task_ref,
-      data: data,
-      run_at: run_at
-    } | state.tasks]
+    new_tasks = [
+      %{
+        id: task_ref,
+        data: data,
+        run_at: run_at
+      }
+      | state.tasks
+    ]
 
     state = %{state | tasks: new_tasks} |> schedule_next_invocation()
 
@@ -90,7 +94,7 @@ defmodule TaskScheduler.Queue do
   defp schedule_next_invocation(%__MODULE__{} = state) do
     Logger.info("Scheduling next invocation")
     current_time = :os.system_time(:millisecond)
-    sorted_tasks = Enum.sort_by(state.tasks, &(&1.run_at))
+    sorted_tasks = Enum.sort_by(state.tasks, & &1.run_at)
 
     if state.trigger_ref != nil do
       Process.cancel_timer(state.trigger_ref)
@@ -100,6 +104,7 @@ defmodule TaskScheduler.Queue do
       nil ->
         Logger.info("No tasks to execute!")
         %{state | trigger_ref: nil}
+
       task ->
         run_in = max(task.run_at - current_time, 0)
         Logger.info("Scheduling task in #{run_in} milliseconds")
