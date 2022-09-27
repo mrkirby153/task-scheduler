@@ -34,7 +34,8 @@ defmodule TaskScheduler.Queue do
 
   def start_link(opts \\ []) do
     queue_name = Keyword.fetch!(opts, :queue_name)
-    GenServer.start_link(__MODULE__, queue_name, opts)
+    gen_server_opts = Keyword.get(opts, :GenServer, [])
+    GenServer.start_link(__MODULE__, queue_name, gen_server_opts)
   end
 
   def init(queue_name) do

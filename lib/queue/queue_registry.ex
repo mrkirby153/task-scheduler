@@ -4,7 +4,7 @@ defmodule TaskScheduler.Queue.QueueRegistry do
   """
   @spec lookup(any) :: {:error, :not_found} | {:ok, pid}
   def lookup(queue_name) do
-    case Registry.lookup(__MODULE__, queue_name) do
+    case Registry.lookup(Registry.Queue, queue_name) do
       [] -> {:error, :not_found}
       [{pid, _any}] -> {:ok, pid}
     end
@@ -26,11 +26,11 @@ defmodule TaskScheduler.Queue.QueueRegistry do
   """
   @spec start(any) :: :ignore | {:error, any} | {:ok, pid} | {:ok, pid, any}
   def start(queue_name) do
-    process_name = {:via, Registry, {__MODULE__, queue_name}}
+    process_name = {:via, Registry, {Registry.Queue, queue_name}}
 
     DynamicSupervisor.start_child(
       TaskScheduler.QueueSupervisor,
-      {TaskScheduler.Queue, [queue_name: queue_name, name: process_name]}
+      {TaskScheduler.Queue, [queue_name: queue_name, GenServer: [name: process_name]]}
     )
   end
 
@@ -56,7 +56,7 @@ defmodule TaskScheduler.Queue.QueueRegistry do
   """
   @spec all :: [{pid(), String.t()}]
   def all() do
-    Registry.select(__MODULE__, [{{:"$1", :"$2", :"$3"}, [], [{{:"$1", :"$2", :"$3"}}]}])
+    Registry.select(Registry.Queue, [{{:"$1", :"$2", :"$3"}, [], [{{:"$1", :"$2", :"$3"}}]}])
     |> Enum.map(fn {name, pid, _} -> {pid, name} end)
   end
 end
