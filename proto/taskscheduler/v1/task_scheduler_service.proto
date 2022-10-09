@@ -42,6 +42,7 @@ message ScheduleTaskRequest {
     uint64 time = 1;
     string queue = 2;
     string data = 3;
+    string topic = 4;
 }
 
 message ScheduleTaskResponse {

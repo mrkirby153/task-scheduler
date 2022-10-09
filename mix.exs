@@ -30,7 +30,8 @@ defmodule TaskScheduler.MixProject do
        git: "https://github.com/elixir-grpc/grpc.git",
        ref: "c7ee0c11ad9eb95a8925a342af8e2d5b1f082fee"},
       {:protobuf, "~> 0.11.0"},
-      {:google_protos, "~> 0.3"}
+      {:google_protos, "~> 0.3"},
+      {:json, "~> 1.4"}
     ]
   end
 end
