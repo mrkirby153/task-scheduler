@@ -9,3 +9,10 @@ config :amqp,
       connection: :main
     ]
   ]
+
+config :task_scheduler,
+  db_username: "root",
+  db_password: "root",
+  db_host: "localhost",
+  db_port: 3306,
+  db_database: "task_scheduler"

@@ -8,7 +8,8 @@ defmodule TaskScheduler.Queue.Supervisor do
   def init(_opts) do
     children = [
       {Registry, keys: :unique, name: Registry.Queue},
-      {DynamicSupervisor, name: TaskScheduler.QueueSupervisor, strategy: :one_for_one}
+      {DynamicSupervisor, name: TaskScheduler.QueueSupervisor, strategy: :one_for_one},
+      TaskScheduler.Queue.QueueRegistry.LoadQueues
     ]
 
     Supervisor.init(children, strategy: :one_for_all)

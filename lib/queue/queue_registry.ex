@@ -59,4 +59,24 @@ defmodule TaskScheduler.Queue.QueueRegistry do
     Registry.select(Registry.Queue, [{{:"$1", :"$2", :"$3"}, [], [{{:"$1", :"$2", :"$3"}}]}])
     |> Enum.map(fn {name, pid, _} -> {pid, name} end)
   end
+
+  defmodule LoadQueues do
+    use GenServer, restart: :transient
+    require Logger
+
+    def start_link(opts \\ []) do
+      GenServer.start_link(__MODULE__, :ok, opts)
+    end
+
+    def init(:ok) do
+      {:ok, nil, {:continue, :load}}
+    end
+
+    def handle_continue(:load, state) do
+      queues = TaskScheduler.DB.Tasks.get_all_queues()
+      Logger.info("Loading #{length(queues)} queues from database.")
+      queues |> Enum.map(&TaskScheduler.Queue.QueueRegistry.lookup_or_start/1)
+      {:stop, :normal, state}
+    end
+  end
 end

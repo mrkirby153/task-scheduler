@@ -7,17 +7,8 @@ defmodule TaskScheduler.Queue do
   @type t :: %{
           trigger_ref: reference(),
           self_stop_ref: reference(),
-          tasks: [task()],
+          tasks: [TaskScheduler.Queue.Task.t()],
           name: String.t()
-        }
-
-  @type reply :: String.t() | pid()
-
-  @type task :: %{
-          id: String.t(),
-          data: String.t(),
-          run_at: integer(),
-          reply_to: reply()
         }
 
   defstruct trigger_ref: nil,
@@ -92,11 +83,12 @@ defmodule TaskScheduler.Queue do
     task_id = generate_task_id()
 
     new_tasks = [
-      %{
+      %TaskScheduler.Queue.Task{
         id: task_id,
         data: data,
         run_at: run_at,
-        reply_to: reply_to
+        reply_to: reply_to,
+        queue: state.name
       }
       | state.tasks
     ]

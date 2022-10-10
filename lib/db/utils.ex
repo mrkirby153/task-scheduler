@@ -1,5 +1,9 @@
-defmodule TaskScheduler.DB do
+defmodule TaskScheduler.DB.Utils do
   def to_map(record, as_atom \\ true)
+
+  def to_map(%MyXQL.Result{} = result, as_atom) do
+    to_map({:ok, result}, as_atom)
+  end
 
   def to_map({:ok, %MyXQL.Result{last_insert_id: id, columns: nil, rows: nil}}, _as_atom)
       when id > 0 do
