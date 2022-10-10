@@ -26,3 +26,5 @@ task_scheduler-*.tar
 /tmp/
 
 /.elixir_ls/
+
+.vscode/

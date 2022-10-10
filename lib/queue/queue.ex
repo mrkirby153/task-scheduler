@@ -2,8 +2,11 @@ defmodule TaskScheduler.Queue do
   use GenServer
   require Logger
 
+  @self_stop_delay 60_000..120_000
+
   @type t :: %{
           trigger_ref: reference(),
+          self_stop_ref: reference(),
           tasks: [task()],
           name: String.t()
         }
@@ -19,8 +22,8 @@ defmodule TaskScheduler.Queue do
 
   defstruct trigger_ref: nil,
             tasks: [],
-            queue: nil,
-            name: nil
+            name: nil,
+            self_stop_ref: nil
 
   ## Client Callbacks
 
@@ -50,7 +53,7 @@ defmodule TaskScheduler.Queue do
 
   def handle_continue(:init, %__MODULE__{} = state) do
     # TODO: Load tasks and scheudle queue
-    state = state |> schedule_next_invocation()
+    state = state |> schedule_next_invocation() |> schedule_self_stop()
     {:noreply, state}
   end
 
@@ -62,8 +65,23 @@ defmodule TaskScheduler.Queue do
 
     run_tasks(to_execute)
 
-    state = %{state | tasks: state.tasks -- to_execute} |> schedule_next_invocation()
+    state =
+      %{state | tasks: state.tasks -- to_execute}
+      |> schedule_next_invocation()
+      |> schedule_self_stop()
+
     {:noreply, state}
+  end
+
+  def handle_info(:self_stop, %__MODULE__{} = state) do
+    if length(state.tasks) != 0 do
+      Logger.debug("Not stopping while there are outstanding tasks")
+      {:noreply, state}
+    else
+      Logger.debug("Self-stopping for #{state.name} due to inactivity")
+      TaskScheduler.Queue.QueueRegistry.stop(self())
+      {:stop, :normal, state}
+    end
   end
 
   def handle_call(
@@ -83,7 +101,7 @@ defmodule TaskScheduler.Queue do
       | state.tasks
     ]
 
-    state = %{state | tasks: new_tasks} |> schedule_next_invocation()
+    state = %{state | tasks: new_tasks} |> schedule_next_invocation() |> schedule_self_stop()
 
     {:reply, {:ok, task_id}, state}
   end
@@ -93,7 +111,7 @@ defmodule TaskScheduler.Queue do
 
     new_tasks = Enum.filter(state.tasks, &(&1.id != ref))
 
-    state = %{state | tasks: new_tasks} |> schedule_next_invocation()
+    state = %{state | tasks: new_tasks} |> schedule_next_invocation() |> schedule_self_stop()
 
     {:reply, :ok, state}
   end
@@ -165,5 +183,20 @@ defmodule TaskScheduler.Queue do
 
   defp generate_task_id() do
     :crypto.strong_rand_bytes(16) |> Base.encode16(case: :lower) |> :binary.copy()
+  end
+
+  defp schedule_self_stop(%__MODULE__{self_stop_ref: ref, name: name} = state) do
+    if ref != nil do
+      Process.cancel_timer(ref)
+    end
+
+    if length(state.tasks) == 0 do
+      send_after = Enum.random(@self_stop_delay)
+      Logger.debug("[#{name}] Scheduling self-stop for #{send_after} milliseconds")
+      ref = Process.send_after(self(), :self_stop, send_after)
+      %{state | self_stop_ref: ref}
+    else
+      %{state | self_stop_ref: nil}
+    end
   end
 end
