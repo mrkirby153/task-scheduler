@@ -5,6 +5,10 @@ defmodule TaskScheduler do
 
   use Application
 
+  def get_queue(name) do
+    TaskScheduler.Queue.QueueRegistry.lookup_or_start(name)
+  end
+
   def start(_type, _args) do
     database_username = Application.get_env(:task_scheduler, :db_username)
     database_password = Application.get_env(:task_scheduler, :db_password)
