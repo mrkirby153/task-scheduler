@@ -43,8 +43,8 @@ defmodule TaskScheduler.Queue do
   end
 
   def handle_continue(:init, %__MODULE__{} = state) do
-    # TODO: Load tasks and scheudle queue
-    state = state |> schedule_next_invocation() |> schedule_self_stop()
+    tasks = TaskScheduler.DB.Tasks.load_tasks_for_queue(state.name)
+    state = %{state | tasks: tasks} |> schedule_next_invocation() |> schedule_self_stop()
     {:noreply, state}
   end
 
@@ -82,16 +82,17 @@ defmodule TaskScheduler.Queue do
       ) do
     task_id = generate_task_id()
 
-    new_tasks = [
-      %TaskScheduler.Queue.Task{
-        id: task_id,
-        data: data,
-        run_at: run_at,
-        reply_to: reply_to,
-        queue: state.name
-      }
-      | state.tasks
-    ]
+    new_task = %TaskScheduler.Queue.Task{
+      id: task_id,
+      data: data,
+      run_at: run_at,
+      reply_to: reply_to,
+      queue: state.name
+    }
+
+    TaskScheduler.DB.Tasks.create_task(new_task)
+
+    new_tasks = [new_task | state.tasks]
 
     state = %{state | tasks: new_tasks} |> schedule_next_invocation() |> schedule_self_stop()
 
@@ -100,6 +101,8 @@ defmodule TaskScheduler.Queue do
 
   def handle_call({:cancel, ref}, _from, %__MODULE__{} = state) do
     Logger.debug("Canceling task #{inspect(ref)}")
+
+    TaskScheduler.DB.Tasks.delete_task(ref)
 
     new_tasks = Enum.filter(state.tasks, &(&1.id != ref))
 
@@ -139,10 +142,13 @@ defmodule TaskScheduler.Queue do
     run_tasks(tail)
   end
 
-  defp run_task(%{reply_to: reply_to} = task) when is_binary(reply_to) do
+  defp run_task(%TaskScheduler.Queue.Task{reply_to: reply_to, id: id} = task)
+       when is_binary(reply_to) do
     Logger.debug("Calling task #{inspect(task.id)} over AMQP queue #{inspect(reply_to)}")
     {:ok, chan} = AMQP.Application.get_channel(:main)
     AMQP.Queue.declare(chan, reply_to, auto_delete: true)
+
+    TaskScheduler.DB.Tasks.delete_task(id)
 
     {:ok, data} =
       JSON.encode(%{
@@ -156,19 +162,6 @@ defmodule TaskScheduler.Queue do
 
       error ->
         Logger.error("Unable to publish data, error: #{inspect(error)}")
-        false
-    end
-  end
-
-  defp run_task(%{reply_to: reply_to} = task) when is_pid(reply_to) do
-    Logger.debug("Calling task via Elixir pid #{inspect(reply_to)}")
-
-    case Process.send(reply_to, {:task, %{id: task.id, data: task.data}}, []) do
-      :ok ->
-        true
-
-      error ->
-        Logger.error("Unable to send message to Elixir pid, error: #{inspect(error)}")
         false
     end
   end

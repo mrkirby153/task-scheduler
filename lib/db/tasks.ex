@@ -36,6 +36,18 @@ defmodule TaskScheduler.DB.Tasks do
     end
   end
 
+  def load_tasks_for_queue(queue) do
+    case MyXQL.query(:myxql, "SELECT * FROM `tasks` WHERE queue = ?", [queue]) do
+      {:ok, result} ->
+        with {:ok, rows} <- DBUtils.to_map(result) do
+          rows |> Enum.map(&(parse_task(&1) |> elem(1)))
+        end
+
+      {:error, term} ->
+        {:error, term}
+    end
+  end
+
   def create_task(%QueueTask{} = task) do
     MyXQL.query(
       :myxql,
@@ -52,6 +64,15 @@ defmodule TaskScheduler.DB.Tasks do
       ]
     )
     |> DBUtils.to_map()
+  end
+
+  def delete_task(id) when is_binary(id) do
+    MyXQL.query(:myxql, "DELETE FROM `tasks` WHERE id = ?", [id])
+    |> DBUtils.to_map()
+  end
+
+  def delete_task(%QueueTask{} = task) do
+    delete_task(task.id)
   end
 
   defp parse_task(row) when length(row) > 1 do
