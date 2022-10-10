@@ -66,8 +66,13 @@ defmodule TaskScheduler.Queue do
     {:noreply, state}
   end
 
-  def handle_call({:schedule, %{data: data, run_at: run_at, reply_to: reply_to}}, _from, %__MODULE__{} = state) do
+  def handle_call(
+        {:schedule, %{data: data, run_at: run_at, reply_to: reply_to}},
+        _from,
+        %__MODULE__{} = state
+      ) do
     task_id = generate_task_id()
+
     new_tasks = [
       %{
         id: task_id,
@@ -127,16 +132,18 @@ defmodule TaskScheduler.Queue do
   defp run_task(%{reply_to: reply_to} = task) when is_binary(reply_to) do
     Logger.debug("Calling task #{inspect(task.id)} over AMQP queue #{inspect(reply_to)}")
     {:ok, chan} = AMQP.Application.get_channel(:main)
-    AMQP.Queue.declare(chan, reply_to, [auto_delete: true])
+    AMQP.Queue.declare(chan, reply_to, auto_delete: true)
 
-    {:ok, data} = JSON.encode(%{
-      id: task.id,
-      data: task.data
-    })
+    {:ok, data} =
+      JSON.encode(%{
+        id: task.id,
+        data: task.data
+      })
 
     case AMQP.Basic.publish(chan, "", reply_to, data) do
       :ok ->
         true
+
       error ->
         Logger.error("Unable to publish data, error: #{inspect(error)}")
         false
@@ -149,6 +156,7 @@ defmodule TaskScheduler.Queue do
     case Process.send(reply_to, {:task, %{id: task.id, data: task.data}}, []) do
       :ok ->
         true
+
       error ->
         Logger.error("Unable to send message to Elixir pid, error: #{inspect(error)}")
         false

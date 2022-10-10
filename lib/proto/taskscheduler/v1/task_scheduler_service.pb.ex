@@ -3,7 +3,7 @@ defmodule Taskscheduler.V1.GetTaskRequest do
 
   use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
-  field :id, 1, type: :uint64
+  field(:id, 1, type: :uint64)
 end
 
 defmodule Taskscheduler.V1.GetTaskResponse do
@@ -11,7 +11,7 @@ defmodule Taskscheduler.V1.GetTaskResponse do
 
   use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
-  field :task, 1, type: Taskscheduler.V1.Task
+  field(:task, 1, type: Taskscheduler.V1.Task)
 end
 
 defmodule Taskscheduler.V1.CancelTaskRequest do
@@ -19,7 +19,7 @@ defmodule Taskscheduler.V1.CancelTaskRequest do
 
   use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
-  field :id, 1, type: :uint64
+  field(:id, 1, type: :uint64)
 end
 
 defmodule Taskscheduler.V1.CancelTaskResponse do
@@ -27,7 +27,7 @@ defmodule Taskscheduler.V1.CancelTaskResponse do
 
   use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
-  field :success, 1, type: :bool
+  field(:success, 1, type: :bool)
 end
 
 defmodule Taskscheduler.V1.RescheduleTaskRequest do
@@ -35,11 +35,11 @@ defmodule Taskscheduler.V1.RescheduleTaskRequest do
 
   use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
-  oneof :task_id, 0
+  oneof(:task_id, 0)
 
-  field :id, 1, type: :uint64, oneof: 0
-  field :task, 2, type: Taskscheduler.V1.Task, oneof: 0
-  field :new_time, 3, type: :uint64, json_name: "newTime"
+  field(:id, 1, type: :uint64, oneof: 0)
+  field(:task, 2, type: Taskscheduler.V1.Task, oneof: 0)
+  field(:new_time, 3, type: :uint64, json_name: "newTime")
 end
 
 defmodule Taskscheduler.V1.RescheduleTaskResponse do
@@ -47,7 +47,7 @@ defmodule Taskscheduler.V1.RescheduleTaskResponse do
 
   use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
-  field :task, 1, type: Taskscheduler.V1.Task
+  field(:task, 1, type: Taskscheduler.V1.Task)
 end
 
 defmodule Taskscheduler.V1.ScheduleTaskRequest do
@@ -55,10 +55,10 @@ defmodule Taskscheduler.V1.ScheduleTaskRequest do
 
   use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
-  field :time, 1, type: :uint64
-  field :queue, 2, type: :string
-  field :data, 3, type: :string
-  field :topic, 4, type: :string
+  field(:time, 1, type: :uint64)
+  field(:queue, 2, type: :string)
+  field(:data, 3, type: :string)
+  field(:topic, 4, type: :string)
 end
 
 defmodule Taskscheduler.V1.ScheduleTaskResponse do
@@ -66,7 +66,7 @@ defmodule Taskscheduler.V1.ScheduleTaskResponse do
 
   use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
-  field :task, 1, type: Taskscheduler.V1.Task
+  field(:task, 1, type: Taskscheduler.V1.Task)
 end
 
 defmodule Taskscheduler.V1.TaskSchedulerService.Service do
@@ -76,13 +76,15 @@ defmodule Taskscheduler.V1.TaskSchedulerService.Service do
     name: "taskscheduler.v1.TaskSchedulerService",
     protoc_gen_elixir_version: "0.11.0"
 
-  rpc :GetTask, Taskscheduler.V1.GetTaskRequest, Taskscheduler.V1.GetTaskResponse
+  rpc(:GetTask, Taskscheduler.V1.GetTaskRequest, Taskscheduler.V1.GetTaskResponse)
 
-  rpc :CancelTask, Taskscheduler.V1.CancelTaskRequest, Taskscheduler.V1.CancelTaskResponse
+  rpc(:CancelTask, Taskscheduler.V1.CancelTaskRequest, Taskscheduler.V1.CancelTaskResponse)
 
-  rpc :RescheduleTask,
-      Taskscheduler.V1.RescheduleTaskRequest,
-      Taskscheduler.V1.RescheduleTaskResponse
+  rpc(
+    :RescheduleTask,
+    Taskscheduler.V1.RescheduleTaskRequest,
+    Taskscheduler.V1.RescheduleTaskResponse
+  )
 end
 
 defmodule Taskscheduler.V1.TaskSchedulerService.Stub do
