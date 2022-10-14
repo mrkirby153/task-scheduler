@@ -4,8 +4,7 @@ defmodule TaskScheduler.Queue.Task do
           id: String.t(),
           data: String.t(),
           queue: String.t(),
-          run_at: integer(),
-          reply_to: reply()
+          run_at: integer()
         }
 
   defstruct id: nil, data: "", run_at: nil, reply_to: nil, queue: nil
@@ -15,8 +14,7 @@ defmodule TaskScheduler.Queue.Task do
       id: row[:id],
       data: row[:data],
       queue: row[:queue],
-      run_at: row[:run_at] |> DateTime.to_unix(:millisecond),
-      reply_to: row[:reply_to]
+      run_at: row[:run_at] |> DateTime.to_unix(:millisecond)
     }
   end
 end

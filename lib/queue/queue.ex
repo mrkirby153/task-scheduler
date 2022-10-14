@@ -18,8 +18,8 @@ defmodule TaskScheduler.Queue do
 
   ## Client Callbacks
 
-  def schedule(pid, data, reply_to, run_at) do
-    GenServer.call(pid, {:schedule, %{data: data, run_at: run_at, reply_to: reply_to}})
+  def schedule(pid, data, run_at) do
+    GenServer.call(pid, {:schedule, %{data: data, run_at: run_at}})
   end
 
   def cancel(pid, task_ref) do
@@ -54,7 +54,7 @@ defmodule TaskScheduler.Queue do
     now = :os.system_time(:millisecond)
     to_execute = Enum.filter(state.tasks, &(&1.run_at <= now))
 
-    run_tasks(to_execute)
+    run_tasks(state.name, to_execute)
 
     state =
       %{state | tasks: state.tasks -- to_execute}
@@ -76,7 +76,7 @@ defmodule TaskScheduler.Queue do
   end
 
   def handle_call(
-        {:schedule, %{data: data, run_at: run_at, reply_to: reply_to}},
+        {:schedule, %{data: data, run_at: run_at}},
         _from,
         %__MODULE__{} = state
       ) do
@@ -86,7 +86,6 @@ defmodule TaskScheduler.Queue do
       id: task_id,
       data: data,
       run_at: run_at,
-      reply_to: reply_to,
       queue: state.name
     }
 
@@ -133,21 +132,17 @@ defmodule TaskScheduler.Queue do
     end
   end
 
-  defp run_tasks(tasks) when length(tasks) == 0 do
+  defp run_tasks(_queue, tasks) when length(tasks) == 0 do
     # Do nothing, no work to do
   end
 
-  defp run_tasks([head | tail]) do
-    run_task(head)
-    run_tasks(tail)
+  defp run_tasks(queue, [head | tail]) do
+    run_task(queue, head)
+    run_tasks(queue, tail)
   end
 
-  defp run_task(%TaskScheduler.Queue.Task{reply_to: reply_to, id: id} = task)
-       when is_binary(reply_to) do
-    Logger.debug("Calling task #{inspect(task.id)} over AMQP queue #{inspect(reply_to)}")
-    {:ok, chan} = AMQP.Application.get_channel(:main)
-    AMQP.Queue.declare(chan, reply_to, auto_delete: true)
-
+  defp run_task(queue, %TaskScheduler.Queue.Task{id: id} = task) do
+    Logger.debug("Calling task #{inspect(task.id)}")
     TaskScheduler.DB.Tasks.delete_task(id)
 
     {:ok, data} =
@@ -156,7 +151,16 @@ defmodule TaskScheduler.Queue do
         data: task.data
       })
 
-    case AMQP.Basic.publish(chan, "", reply_to, data) do
+    queues = TaskScheduler.AMQPMapper.get_mappings(queue)
+    Logger.debug("Enqueuing into queues: #{inspect(queues)}")
+    Enum.each(queues, fn queue -> send_to_queue(data, queue) end)
+  end
+
+  defp send_to_queue(data, queue) do
+    {:ok, chan} = AMQP.Application.get_channel(:main)
+    AMQP.Queue.declare(chan, queue, auto_delete: true)
+
+    case AMQP.Basic.publish(chan, "", queue, data) do
       :ok ->
         true
 

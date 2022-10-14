@@ -24,7 +24,8 @@ defmodule TaskScheduler do
        port: database_port,
        database: database_database,
        name: :myxql},
-      TaskScheduler.Queue.Supervisor
+      TaskScheduler.Queue.Supervisor,
+      TaskScheduler.AMQPMapper
     ]
 
     Supervisor.start_link(children, strategy: :one_for_one, name: TaskScheduler)
