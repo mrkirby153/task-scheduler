@@ -1,12 +1,12 @@
 defmodule TaskScheduler.AMQPMapper do
   use GenServer
 
-  defstruct table: nil
+  defstruct table: nil, monitors: %{}
 
   ## Client API
 
-  def map(queue, amqp_queue) do
-    GenServer.call(__MODULE__, {:register, queue, amqp_queue})
+  def map(queue, amqp_queue, pid \\ nil) do
+    GenServer.call(__MODULE__, {:register, queue, amqp_queue, pid})
   end
 
   def unmap(queue, amqp_queue) do
@@ -33,13 +33,33 @@ defmodule TaskScheduler.AMQPMapper do
      }}
   end
 
-  def handle_call({:register, queue, amqp_queue}, _from, state) do
+  def handle_call({:register, queue, amqp_queue, monitor_pid}, _from, %__MODULE__{} = state) do
     :ets.insert(:amqp_map, {queue, amqp_queue})
-    {:reply, :ok, state}
+
+    if monitor_pid != nil do
+      ref = Process.monitor(monitor_pid)
+      monitors = Map.put(state.monitors, ref, {queue, amqp_queue})
+      state = %{state | monitors: monitors}
+      {:reply, :ok, state}
+    else
+      {:reply, :ok, state}
+    end
   end
 
   def handle_call({:unregister, queue, amqp_queue}, _from, state) do
     :ets.delete_object(:amqp_map, {queue, amqp_queue})
     {:reply, :ok, state}
+  end
+
+  def handle_info({:DOWN, ref, :process, _obj, _reason}, %__MODULE__{} = state) do
+    case Map.get(state.monitors, ref) do
+      nil ->
+        {:noreply, state}
+
+      {queue, amqp_queue} ->
+        :ets.delete_object(:amqp_map, {queue, amqp_queue})
+        monitors = Map.delete(state.monitors, ref)
+        {:noreply, %{state | monitors: monitors}}
+    end
   end
 end

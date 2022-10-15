@@ -29,7 +29,7 @@ defmodule TaskScheduler.AMQPMapper.Heartbeater do
 
   def init({queue, amqp_queue, interval}) do
     heartbeat_ref = Process.send_after(self(), :terminate, interval + @heartbeat_grace_period)
-    AMQPMapper.map(queue, amqp_queue)
+    AMQPMapper.map(queue, amqp_queue, self())
 
     {:ok,
      %__MODULE__{
@@ -42,7 +42,6 @@ defmodule TaskScheduler.AMQPMapper.Heartbeater do
 
   def handle_info(:terminate, %__MODULE__{} = state) do
     Logger.info("Heartbeat timed out for #{state.queue} -> #{state.amqp_queue}")
-    AMQPMapper.unmap(state.queue, state.amqp_queue)
     {:stop, :normal, state}
   end
 
