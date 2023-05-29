@@ -10,6 +10,7 @@ defmodule TaskScheduler.Queue.Supervisor do
       {Registry, keys: :unique, name: Registry.TaskQueue},
       {DynamicSupervisor, name: TaskScheduler.QueueSupervisor, stragey: :one_for_one}
     ]
+
     Supervisor.init(children, strategy: :one_for_one)
   end
 end

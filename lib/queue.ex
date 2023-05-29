@@ -5,14 +5,13 @@ defmodule TaskScheduler.Queue do
   @self_stop_delay 60_000..120_000
 
   @type t :: %{
-    trigger_ref: reference(),
-    self_stop_ref: reference(),
-    tasks: List.t(),
-    name: String.t()
-  }
+          trigger_ref: reference(),
+          self_stop_ref: reference(),
+          tasks: List.t(),
+          name: String.t()
+        }
 
   defstruct trigger_ref: nil, tasks: [], name: nil, self_stop_ref: nil
-
 
   # Client Methods
 
@@ -29,6 +28,7 @@ defmodule TaskScheduler.Queue do
 
   def init(queue_name) do
     Logger.debug("[#{queue_name}] Initializing...")
+
     state = %__MODULE__{
       name: queue_name
     }
@@ -61,6 +61,7 @@ defmodule TaskScheduler.Queue do
 
   defp schedule_self_stop(%__MODULE__{} = state) do
     ref = state.self_stop_ref
+
     if ref != nil do
       Process.cancel_timer(ref)
     end
@@ -74,6 +75,7 @@ defmodule TaskScheduler.Queue do
       if ref != nil do
         Logger.debug("[#{state.name}] Cancelling self stop")
       end
+
       %{state | self_stop_ref: nil}
     end
   end

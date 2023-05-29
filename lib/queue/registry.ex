@@ -1,5 +1,4 @@
 defmodule TaskScheduler.Queue.Registry do
-
   @queue_registry_module Registry.TaskQueue
 
   @spec lookup(String.t()) :: {:error, :not_found} | {:ok, pid}
@@ -19,7 +18,11 @@ defmodule TaskScheduler.Queue.Registry do
 
   def start(queue_name) do
     process_name = {:via, Registry, {@queue_registry_module, queue_name}}
-    DynamicSupervisor.start_child(TaskScheduler.QueueSupervisor, {TaskScheduler.Queue, [name: queue_name, GenServer: [name: process_name]]})
+
+    DynamicSupervisor.start_child(
+      TaskScheduler.QueueSupervisor,
+      {TaskScheduler.Queue, [name: queue_name, GenServer: [name: process_name]]}
+    )
   end
 
   def stop(pid) when is_pid(pid) do
