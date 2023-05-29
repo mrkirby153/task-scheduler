@@ -16,6 +16,10 @@ defmodule TaskScheduler.Queue do
 
   # Client Methods
 
+  def stop(pid) do
+    GenServer.call(pid, :stop)
+  end
+
   # Server Callbacks
   def start_link(opts \\ []) do
     queue_name = Keyword.fetch!(opts, :name)
@@ -38,8 +42,14 @@ defmodule TaskScheduler.Queue do
     {:noreply, state}
   end
 
+  def handle_call(:stop, _from, %__MODULE__{} = state) do
+    do_stop()
+    {:stop, :normal, state}
+  end
+
   def handle_info(:self_stop, %__MODULE__{tasks: tasks} = state) when length(tasks) == 0 do
     Logger.info("[#{state.name}] Stopping")
+    do_stop()
     {:stop, :normal, state}
   end
 
@@ -66,5 +76,9 @@ defmodule TaskScheduler.Queue do
       end
       %{state | self_stop_ref: nil}
     end
+  end
+
+  defp do_stop() do
+    TaskScheduler.Queue.Registry.stop(self())
   end
 end

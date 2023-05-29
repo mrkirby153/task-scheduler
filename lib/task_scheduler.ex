@@ -1,18 +1,10 @@
 defmodule TaskScheduler do
-  @moduledoc """
-  Documentation for `TaskScheduler`.
-  """
+  use Application
 
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> TaskScheduler.hello()
-      :world
-
-  """
-  def hello do
-    :world
+  def start(_type, _args) do
+    children = [
+      TaskScheduler.Queue.Supervisor
+    ]
+    Supervisor.start_link(children, strategy: :one_for_one, name: TsakScheduler)
   end
 end
