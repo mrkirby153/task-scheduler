@@ -24,3 +24,5 @@ task_scheduler-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+/result
