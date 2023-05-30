@@ -16,13 +16,31 @@
       buildInputs = with pkgs; [
         elixir
       ];
-    in {
+    in rec {
       packages.default = pkgs.beamPackages.mixRelease {
         version = "v0.1.0";
         name = "task-scheduler";
         pname = "task-scheduler";
         src = ./.;
         mixNixDeps = with pkgs; import ./mix_deps.nix { inherit lib beamPackages; };
+      };
+      packages.docker = pkgs.dockerTools.buildImage {
+        name = "task-scheduler";
+        tag = "latest";
+        copyToRoot = pkgs.buildEnv {
+          name = "image-root";
+          paths = [ packages.default pkgs.busybox ];
+          pathsToLink = [ "/bin" ];
+        };
+        runAsRoot = ''
+        #!${pkgs.runtimeShell}
+        mkdir -p /data
+        '';
+        config = {
+          Cmd = [ "${packages.default}/bin/task_scheduler" "start" ];
+          WorkingDir = "/data";
+          Env = [ "LOCALE=en_US.UTF-8" ];
+        };
       };
       devShells = {
         default = pkgs.mkShell {
